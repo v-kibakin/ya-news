@@ -73,8 +73,6 @@ class TestCommentCreation(TestCase):
         self.assertEqual(comments_count, 0)
 
 
-# news/tests/test_logic.py
-...
 class TestCommentEditDelete(TestCase):
     # Тексты для комментариев не нужно дополнительно создавать 
     # (в отличие от объектов в БД), им не нужны ссылки на self или cls, 
@@ -114,3 +112,24 @@ class TestCommentEditDelete(TestCase):
         cls.delete_url = reverse('news:delete', args=(cls.comment.id,))
         # Формируем данные для POST-запроса по обновлению комментария.
         cls.form_data = {'text': cls.NEW_COMMENT_TEXT}
+
+    def test_author_can_delete_comment(self):
+        # От имени автора комментария отправляем DELETE-запрос на удаление.
+        response = self.author_client.delete(self.delete_url)
+        # Проверяем, что редирект привёл к разделу с комментариями.
+        self.assertRedirects(response, self.url_to_comments)
+        # Заодно проверим статус-коды ответов.
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        # Считаем количество комментариев в системе.
+        comments_count = Comment.objects.count()
+        # Ожидаем ноль комментариев в системе.
+        self.assertEqual(comments_count, 0)
+
+    def test_user_cant_delete_comment_of_another_user(self):
+        # Выполняем запрос на удаление от пользователя-читателя.
+        response = self.reader_client.delete(self.delete_url)
+        # Проверяем, что вернулась 404 ошибка.
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        # Убедимся, что комментарий по-прежнему на месте.
+        comments_count = Comment.objects.count()
+        self.assertEqual(comments_count, 1)
