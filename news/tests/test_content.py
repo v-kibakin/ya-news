@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from news.models import News
 
+from datetime import datetime, timedelta
 
 class TestHomePage(TestCase):
 
@@ -12,10 +13,18 @@ class TestHomePage(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        all_news = []
-        for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1):
-            news = News(title=f'Новость {index}', text='Просто текст.')
-            all_news.append(news)
+        # Вычисляем текущую дату.
+        today = datetime.today()
+        all_news = [
+            News(
+                title=f'Новость {index}',
+                text='Просто текст.',
+                # Для каждой новости уменьшаем дату на index дней от today,
+                # где index - счётчик цикла.
+                date=today - timedelta(days=index)
+            )
+            for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
+        ]
         News.objects.bulk_create(all_news)
 
     def test_news_count(self):
