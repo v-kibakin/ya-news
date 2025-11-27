@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from news.models import Comment, News
 
@@ -64,7 +65,7 @@ class TestDetailPage(TestCase):
         cls.detail_url = reverse('news:detail', args=(cls.news.id,))
         cls.author = User.objects.create(username='Комментатор')
         # Запоминаем текущее время:
-        now = datetime.now()
+        now = timezone.now()
         # Создаём комментарии в цикле.
         for index in range(10):
             # Создаём объект и записываем его в переменную.
